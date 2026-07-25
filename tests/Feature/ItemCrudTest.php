@@ -119,4 +119,38 @@ class ItemCrudTest extends TestCase
             'price',
         ]);
     }
+
+    /**
+     * Test that the low stock page only shows vehicles below the threshold.
+     */
+    public function test_low_stock_page_shows_low_quantity_items(): void
+    {
+        // Create a low stock vehicle
+        Item::factory()->create([
+            'product' => 'BMW 3 Series',
+            'category' => 'Luxury',
+            'quantity' => 3,
+            'price' => 120,
+        ]);
+
+        // Create a normal stock vehicle
+        Item::factory()->create([
+            'product' => 'Toyota Corolla',
+            'category' => 'Economy',
+            'quantity' => 10,
+            'price' => 60,
+        ]);
+
+        // Visit the low stock page
+        $response = $this->get('/items/lowstock/5');
+
+        // Check the page loads successfully
+        $response->assertStatus(200);
+
+        // Check low stock vehicle appears
+        $response->assertSee('BMW 3 Series');
+
+        // Check normal stock vehicle does not appear
+        $response->assertDontSee('Toyota Corolla');
+    }
 }

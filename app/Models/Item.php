@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Category;
 
 class Item extends Model
 {
@@ -16,5 +17,15 @@ class Item extends Model
         'category',
         'quantity',
         'price',
+        'category_id',
     ];
+
+    /**
+     * One item belongs to one category.
+     */
+    public function categoryRel()
+    {
+        // We call it categoryRel because we already have a category column
+        return $this->belongsTo(Category::class, 'category_id');
+    }
 }

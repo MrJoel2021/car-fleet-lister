@@ -22,7 +22,8 @@
             </div>
 
             <div class="col-md-12 mb-2">
-                <strong>Category:</strong> {{ $item->category }}
+                {{-- Show category from relationship, or old category text if relationship is missing --}}
+                <strong>Category:</strong> {{ $item->categoryRel?->name ?? $item->category }}
             </div>
 
             <div class="col-md-12 mb-2">

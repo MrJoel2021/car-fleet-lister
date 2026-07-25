@@ -54,8 +54,8 @@
                         {{-- Vehicle product/name --}}
                         <td>{{ $item->product }}</td>
 
-                        {{-- Vehicle category --}}
-                        <td>{{ $item->category }}</td>
+                        {{-- Vehicle category from the relationship --}}
+                        <td>{{ $item->categoryRel?->name ?? $item->category }}</td>
 
                         {{-- Vehicle quantity --}}
                         <td>{{ $item->quantity }}</td>

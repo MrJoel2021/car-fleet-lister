@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use App\Http\Requests\ItemStoreRequest;
@@ -15,8 +16,9 @@ class ItemsController extends Controller
      */
     public function index(): View
     {
-        // Get items from the database and show 5 per page
-        $items = Item::query()->paginate(5);
+        // Get items and load their category relationship
+        // with('categoryRel') prevents the N+1 query problem
+        $items = Item::with('categoryRel')->paginate(5);
 
         // Show resources/views/items/index.blade.php
         return view('items.index', compact('items'))
@@ -37,8 +39,19 @@ class ItemsController extends Controller
      */
     public function store(ItemStoreRequest $request): RedirectResponse
     {
-        // Save the validated form data
-        Item::create($request->validated());
+        // Get the validated form data
+        $data = $request->validated();
+
+        // Find or create the category typed in the form
+        $category = Category::firstOrCreate([
+            'name' => $data['category'],
+        ]);
+
+        // Save the category_id relationship
+        $data['category_id'] = $category->id;
+
+        // Save the new vehicle
+        Item::create($data);
 
         // Redirect back to the items list with success message
         return redirect()->route('items.index')
@@ -50,6 +63,9 @@ class ItemsController extends Controller
      */
     public function show(Item $item): View
     {
+        // Load the related category for this item
+        $item->load('categoryRel');
+
         // Show resources/views/items/show.blade.php
         return view('items.show', compact('item'));
     }
@@ -68,8 +84,19 @@ class ItemsController extends Controller
      */
     public function update(ItemUpdateRequest $request, Item $item): RedirectResponse
     {
+        // Get the validated form data
+        $data = $request->validated();
+
+        // Find or create the category typed in the form
+        $category = Category::firstOrCreate([
+            'name' => $data['category'],
+        ]);
+
+        // Save the category_id relationship
+        $data['category_id'] = $category->id;
+
         // Update item using validated form data
-        $item->update($request->validated());
+        $item->update($data);
 
         // Redirect back to the items list with success message
         return redirect()->route('items.index')
@@ -94,14 +121,14 @@ class ItemsController extends Controller
      */
     public function lowStock(int $threshold): View
     {
-        // Get vehicles where quantity is less than the threshold
-        $items = Item::query()
+        // Get low stock vehicles and load their category relationship
+        $items = Item::with('categoryRel')
             ->where('quantity', '<', $threshold)
             ->orderBy('quantity')
             ->orderBy('product')
             ->paginate(5);
 
-        // Reuse the same index page to show the filtered vehicles
+        // Reuse the same index page
         return view('items.index', compact('items'))
             ->with('success', "Showing vehicles with quantity less than {$threshold}");
     }
